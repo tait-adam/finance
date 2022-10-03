@@ -43,7 +43,7 @@ def after_request(response):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+    return apology("PORTFOLIO")
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -122,7 +122,54 @@ def quote():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
-    return apology("TODO")
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        confirmation = request.form.get("confirmation")
+
+        def is_unique(user):
+            rows = db.execute(
+                "SELECT * FROM users WHERE username = ?",
+                user
+            )
+            return len(rows) != 1
+
+        # Ensure username is not blank
+        if not username:
+            return apology("must provide a username", 403)
+
+        # Ensure username is unique
+        elif not is_unique(username):
+            return apology("username already exists", 403)
+
+        # Ensure password is not blank
+        elif not password:
+            return apology("must provide a password", 403)
+
+        # Ensure password and confirmation match
+        elif password != confirmation:
+            return apology("password and confirmation must match", 403)
+
+        else:
+            hash = generate_password_hash(
+                password,
+                # method='pbkdf2:sha256',
+                # salt_length=16
+            )
+
+            id = db.execute(
+                "INSERT INTO users (username, hash) VALUES (?, ?)",
+                username, hash
+            )
+
+            session["user_id"] = id
+
+            return redirect("/")
+
+    else:
+        return render_template("register.html")
 
 
 @app.route("/sell", methods=["GET", "POST"])
@@ -130,3 +177,4 @@ def register():
 def sell():
     """Sell shares of stock"""
     return apology("TODO")
+
