@@ -75,7 +75,7 @@ def buy():
         # Ensure number of shares is a positive integer
         elif not is_pos_int(shares):
             return apology("Must be a positive integer!", 403)
-        
+
         # Ensure user can afford the purchase
         elif (shares * quote["price"]) > cash_available:
             return apology("You can't afford it homeboy", 403)
@@ -97,7 +97,13 @@ def buy():
             )
             db.execute(
                 """
-                INSERT INTO transactions (transaction_type, symbol, price, shares, user_id)
+                INSERT INTO transactions (
+                    transaction_type,
+                    symbol,
+                    price,
+                    shares,
+                    user_id
+                )
                 VALUES ('BUY', ?, ?, ?, ?)
                 """, symbol, quote["price"], shares, id
             )
