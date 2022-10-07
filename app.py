@@ -1,3 +1,5 @@
+# TODO: Make sure all the http status response codes are correct
+
 import os
 
 from cs50 import SQL
@@ -50,7 +52,60 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        symbol = request.form.get("symbol")
+        shares = int(request.form.get("shares"))
+        quote = lookup(symbol)
+        id = session["user_id"]
+        rows = db.execute("SELECT cash FROM users WHERE id=?", id)
+        cash_available = rows[0]["cash"]
+
+        def is_pos_int(n):
+            return isinstance(n, int) and n > 0
+
+        # Ensure symbol is not blank...
+        if not symbol:
+            return apology("Symbol cannot be blank!", 403)
+        # ... and exists
+        elif not quote:
+            return apology("Symbol does not exist", 403)
+
+        # Ensure number of shares is a positive integer
+        elif not is_pos_int(shares):
+            return apology("Must be a positive integer!", 403)
+        
+        # Ensure user can afford the purchase
+        elif (shares * quote["price"]) > cash_available:
+            return apology("You can't afford it homeboy", 403)
+
+        else:
+            db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS transactions (
+                    transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    transaction_type TEXT NOT NULL,
+                    symbol TEXT NOT NULL,
+                    price NUMERIC NOT NULL,
+                    shares NUMERIC NOT NULL,
+                    timestamp CURRENT_TIMESTAMP,
+                    user_id INTEGER NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                );
+                """
+            )
+            db.execute(
+                """
+                INSERT INTO transactions (transaction_type, symbol, price, shares, user_id)
+                VALUES ('BUY', ?, ?, ?, ?)
+                """, symbol, quote["price"], shares, id
+            )
+            return redirect('/')
+
+    # User reached route via GET (clicking link or entering url)
+    else:
+        return render_template("buy.html")
 
 
 @app.route("/history")
@@ -187,4 +242,3 @@ def register():
 def sell():
     """Sell shares of stock"""
     return apology("TODO")
-
