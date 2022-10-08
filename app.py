@@ -9,6 +9,7 @@ from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from helpers import apology, login_required, lookup, usd
+from database import setup, teardown
 
 # Configure application
 app = Flask(__name__)
@@ -26,6 +27,8 @@ Session(app)
 
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///finance.db")
+teardown(db)
+setup(db)
 
 # Make sure API key is set
 if not os.environ.get("API_KEY"):
@@ -81,32 +84,27 @@ def buy():
             return apology("You can't afford it homeboy", 403)
 
         else:
-            db.execute(
+            row = db.execute(
                 """
-                CREATE TABLE IF NOT EXISTS transactions (
-                    transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    transaction_type TEXT NOT NULL,
-                    symbol TEXT NOT NULL,
-                    price NUMERIC NOT NULL,
-                    shares NUMERIC NOT NULL,
-                    timestamp CURRENT_TIMESTAMP,
-                    user_id INTEGER NOT NULL,
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                );
+                SELECT id
+                FROM transaction_type
+                WHERE type = 'PURCHASE'
                 """
             )
+            type_id = row[0]["id"]
             db.execute(
                 """
                 INSERT INTO transactions (
-                    transaction_type,
+                    transaction_type_id,
                     symbol,
                     price,
                     shares,
                     user_id
                 )
-                VALUES ('BUY', ?, ?, ?, ?)
-                """, symbol, quote["price"], shares, id
+                VALUES (?, ?, ?, ?, ?)
+                """, type_id, symbol, quote["price"], shares, id
             )
+
             return redirect('/')
 
     # User reached route via GET (clicking link or entering url)
@@ -224,11 +222,7 @@ def register():
             return apology("password and confirmation must match", 403)
 
         else:
-            hash = generate_password_hash(
-                password,
-                # method='pbkdf2:sha256',
-                # salt_length=16
-            )
+            hash = generate_password_hash(password)
 
             id = db.execute(
                 "INSERT INTO users (username, hash) VALUES (?, ?)",
