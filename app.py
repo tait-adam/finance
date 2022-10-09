@@ -1,7 +1,5 @@
 # TODO: Make sure all the http status response codes are correct
 
-import os
-
 from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
@@ -75,7 +73,9 @@ def buy():
             return apology("You can't afford it homeboy", 403)
 
         else:
-            row = db.execute("SELECT id FROM transaction_type WHERE type = 'PURCHASE'")
+            row = db.execute(
+                "SELECT id FROM transaction_type WHERE type = 'PURCHASE'"
+            )
             type_id = row[0]["id"]
             cash_remaining = cash_available - shares * quote["price"]
 
