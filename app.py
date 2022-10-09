@@ -75,14 +75,10 @@ def buy():
             return apology("You can't afford it homeboy", 403)
 
         else:
-            row = db.execute(
-                """
-                SELECT id
-                FROM transaction_type
-                WHERE type = 'PURCHASE'
-                """
-            )
+            row = db.execute("SELECT id FROM transaction_type WHERE type = 'PURCHASE'")
             type_id = row[0]["id"]
+            cash_remaining = cash_available - shares * quote["price"]
+
             db.execute(
                 """
                 INSERT INTO transactions (
@@ -94,6 +90,13 @@ def buy():
                 )
                 VALUES (?, ?, ?, ?, ?)
                 """, type_id, symbol, quote["price"], shares, id
+            )
+            db.execute(
+                """
+                UPDATE users
+                SET cash = ?
+                WHERE id = ?
+                """, cash_remaining, id
             )
 
             return redirect('/')
