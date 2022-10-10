@@ -1,14 +1,9 @@
-from flask import Blueprint, request, redirect, render_template, session
-from flask import current_app as app
+from flask import request, redirect, render_template, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology
 from cs50 import SQL
 
-auth = Blueprint(
-    'auth',
-    __name__,
-    template_folder='templates'
-)
+from . import auth
 
 # TODO: transition to sqlalchemy
 db = SQL("sqlite:///finance.db")
