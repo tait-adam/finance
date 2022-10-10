@@ -5,7 +5,7 @@ from flask import Flask, flash
 from flask_session import Session
 from tempfile import mkdtemp
 
-from helpers import apology, login_required, usd
+from helpers import usd
 from database import setup, teardown
 
 
@@ -30,8 +30,10 @@ def init_app():
     with app.app_context():
         from . import auth
         from . import trade
+        from . import portfolio
         app.register_blueprint(auth.auth)
         app.register_blueprint(trade.trade)
+        app.register_blueprint(portfolio.portfolio)
 
     @app.after_request
     def after_request(response):
@@ -40,17 +42,5 @@ def init_app():
         response.headers["Expires"] = 0
         response.headers["Pragma"] = "no-cache"
         return response
-
-    @app.route("/")
-    @login_required
-    def index():
-        """Show portfolio of stocks"""
-        return apology("PORTFOLIO")
-
-    @app.route("/history")
-    @login_required
-    def history():
-        """Show history of transactions"""
-        return apology("TODO")
 
     return app
