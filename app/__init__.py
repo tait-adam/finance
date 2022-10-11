@@ -4,14 +4,13 @@ from flask import Flask
 from flask_session import Session
 from tempfile import mkdtemp
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 from helpers import usd
-# from .seed import transaction_types as seed_data
-
 
 # Globally accessible libraries
 db = SQLAlchemy()
-# TODO: Add flask-migrate so I can seed db
+migrate = Migrate()
 
 
 def init_app():
@@ -23,6 +22,7 @@ def init_app():
 
     # Initialise Plugins
     db.init_app(app)
+    migrate.init_app(app, db)
     Session(app)
 
     # Custom filter
@@ -35,15 +35,8 @@ def init_app():
         app.register_blueprint(auth)
         app.register_blueprint(trade)
         app.register_blueprint(portfolio)
-        db.create_all()
 
         # TODO: Seed transaction_types
-        # from app.models import TransactionType
-
-        # db.engine.execute(
-        #     TransactionType.__table__.insert(),
-        #     seed_data
-        # )
 
     @app.after_request
     def after_request(response):
