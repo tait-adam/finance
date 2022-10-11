@@ -1,4 +1,9 @@
+# TODO: Add flash messages
 # TODO: Make sure all the http status response codes errors are handled
+# TODO: Look at staff solution: https://finance.cs50.net
+# TODO: Define UNIQUE indexes on any fields that should be unique.
+# TODO: Define (non-UNIQUE) indexes on any fields via which you will search
+#       (as via SELECT with WHERE).
 
 from flask import Flask
 from flask_session import Session
@@ -35,8 +40,6 @@ def init_app():
         app.register_blueprint(auth)
         app.register_blueprint(trade)
         app.register_blueprint(portfolio)
-
-        # TODO: Seed transaction_types
 
     @app.after_request
     def after_request(response):
