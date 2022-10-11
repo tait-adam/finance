@@ -1,11 +1,8 @@
 from flask import request, redirect, render_template, session
 from helpers import apology, login_required, lookup
-from cs50 import SQL
+from app.models import db, User, Transaction, TransactionType
 
 from . import trade
-
-# TODO: transition to sqlalchemy
-db = SQL("sqlite:///finance.db")
 
 
 @trade.route("/quote", methods=["GET", "POST"])
@@ -36,8 +33,9 @@ def buy():
         shares = int(request.form.get("shares"))
         quote = lookup(symbol)
         id = session["user_id"]
-        rows = db.execute("SELECT cash FROM users WHERE id=?", id)
-        cash_available = rows[0]["cash"]
+        cash_available = db.one_or_404(
+            db.select(User.cash).filter_by(id=id)
+        )
 
         def is_pos_int(n):
             return isinstance(n, int) and n > 0
@@ -58,31 +56,58 @@ def buy():
             return apology("You can't afford it homeboy", 403)
 
         else:
-            row = db.execute(
-                "SELECT id FROM transaction_type WHERE type = 'PURCHASE'"
+            # Find the id for a purchase transaction
+            type_id = db.session.execute(
+                db.select(TransactionType.id).filter_by(type='PURCHASE')
+            ).first()[0]
+
+            # Define the transaction table entry
+            transaction = Transaction(
+                transaction_type_id=type_id,
+                symbol=symbol,
+                price=quote["price"],
+                shares=shares,
+                user_id=id
             )
-            type_id = row[0]["id"]
+
+            # Work out how much cash user will have after transaction
             cash_remaining = cash_available - shares * quote["price"]
 
-            db.execute(
-                """
-                INSERT INTO transactions (
-                    transaction_type_id,
-                    symbol,
-                    price,
-                    shares,
-                    user_id
-                )
-                VALUES (?, ?, ?, ?, ?)
-                """, type_id, symbol, quote["price"], shares, id
-            )
-            db.execute(
-                """
-                UPDATE users
-                SET cash = ?
-                WHERE id = ?
-                """, cash_remaining, id
-            )
+            # Fetch record to update
+            user = db.session.execute(
+                db.select(User).filter_by(id=id)
+            ).first()[0]
+
+            # Add the transaction and update the users cash
+            db.session.add(transaction)
+            user.cash = cash_remaining
+            db.session.commit()
+
+            # row = db.execute(
+            #     "SELECT id FROM transaction_types WHERE type = 'PURCHASE'"
+            # )
+            # type_id = row[0]["id"]
+            # cash_remaining = cash_available - shares * quote["price"]
+
+            # db.execute(
+            #     """
+            #     INSERT INTO transactions (
+            #         transaction_type_id,
+            #         symbol,
+            #         price,
+            #         shares,
+            #         user_id
+            #     )
+            #     VALUES (?, ?, ?, ?, ?)
+            #     """, type_id, symbol, quote["price"], shares, id
+            # )
+            # db.execute(
+            #     """
+            #     UPDATE users
+            #     SET cash = ?
+            #     WHERE id = ?
+            #     """, cash_remaining, id
+            # )
 
             return redirect('/')
 

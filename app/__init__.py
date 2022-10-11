@@ -1,18 +1,17 @@
 # TODO: Make sure all the http status response codes are correct
 
-from cs50 import SQL
-from flask import Flask, flash
+from flask import Flask
 from flask_session import Session
 from tempfile import mkdtemp
+from flask_sqlalchemy import SQLAlchemy
 
 from helpers import usd
-from database import setup, teardown
+# from .seed import transaction_types as seed_data
 
 
-# Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///finance.db")
-teardown(db)
-setup(db)
+# Globally accessible libraries
+db = SQLAlchemy()
+# TODO: Add flask-migrate so I can seed db
 
 
 def init_app():
@@ -22,18 +21,29 @@ def init_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
 
+    # Initialise Plugins
+    db.init_app(app)
+    Session(app)
+
     # Custom filter
     app.jinja_env.filters["usd"] = usd
 
-    Session(app)
-
     with app.app_context():
-        from . import auth
-        from . import trade
-        from . import portfolio
-        app.register_blueprint(auth.auth)
-        app.register_blueprint(trade.trade)
-        app.register_blueprint(portfolio.portfolio)
+        from app.auth import auth
+        from app.trade import trade
+        from app.portfolio import portfolio
+        app.register_blueprint(auth)
+        app.register_blueprint(trade)
+        app.register_blueprint(portfolio)
+        db.create_all()
+
+        # TODO: Seed transaction_types
+        # from app.models import TransactionType
+
+        # db.engine.execute(
+        #     TransactionType.__table__.insert(),
+        #     seed_data
+        # )
 
     @app.after_request
     def after_request(response):
