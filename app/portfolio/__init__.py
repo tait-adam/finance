@@ -6,4 +6,4 @@ portfolio = Blueprint(
     template_folder='templates'
 )
 
-from . import routes
+from app.portfolio import routes

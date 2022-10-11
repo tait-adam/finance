@@ -1,4 +1,4 @@
-# TODO: Make sure all the http status response codes are correct
+# TODO: Make sure all the http status response codes errors are handled
 
 from flask import Flask
 from flask_session import Session

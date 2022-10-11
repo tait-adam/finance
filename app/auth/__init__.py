@@ -6,4 +6,4 @@ auth = Blueprint(
     template_folder='templates'
 )
 
-from . import routes
+from app.auth import routes

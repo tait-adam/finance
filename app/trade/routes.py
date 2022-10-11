@@ -83,32 +83,6 @@ def buy():
             user.cash = cash_remaining
             db.session.commit()
 
-            # row = db.execute(
-            #     "SELECT id FROM transaction_types WHERE type = 'PURCHASE'"
-            # )
-            # type_id = row[0]["id"]
-            # cash_remaining = cash_available - shares * quote["price"]
-
-            # db.execute(
-            #     """
-            #     INSERT INTO transactions (
-            #         transaction_type_id,
-            #         symbol,
-            #         price,
-            #         shares,
-            #         user_id
-            #     )
-            #     VALUES (?, ?, ?, ?, ?)
-            #     """, type_id, symbol, quote["price"], shares, id
-            # )
-            # db.execute(
-            #     """
-            #     UPDATE users
-            #     SET cash = ?
-            #     WHERE id = ?
-            #     """, cash_remaining, id
-            # )
-
             return redirect('/')
 
     # User reached route via GET (clicking link or entering url)
