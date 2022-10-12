@@ -47,7 +47,7 @@ class Transaction(db.Model):
     """Data model for transactions"""
 
     __tablename__ = 'transactions'
-    transaction_id = db.Column(
+    id = db.Column(
         db.Integer,
         primary_key=True,
         autoincrement=True,

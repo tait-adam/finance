@@ -1,8 +1,8 @@
 """Initial migration.
 
-Revision ID: d04d06a92aa7
+Revision ID: 77c921c430e0
 Revises:
-Create Date: 2022-10-12 10:58:36.516216
+Create Date: 2022-10-12 12:52:32.018409
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd04d06a92aa7'
+revision = '77c921c430e0'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -34,12 +34,7 @@ def upgrade():
     )
     op.create_table(
         'transactions',
-        sa.Column(
-            'transaction_id',
-            sa.Integer(),
-            autoincrement=True,
-            nullable=False
-        ),
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('symbol_id', sa.Integer(), nullable=False),
         sa.Column('price', sa.Float(), nullable=False),
         sa.Column('shares', sa.Integer(), nullable=False),
@@ -47,7 +42,7 @@ def upgrade():
         sa.Column('user_id', sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(['symbol_id'], ['symbols.id'], ),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-        sa.PrimaryKeyConstraint('transaction_id')
+        sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f(
         'ix_transactions_timestamp'),
