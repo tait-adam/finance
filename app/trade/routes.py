@@ -1,6 +1,6 @@
 from flask import request, redirect, render_template, session
 from helpers import apology, login_required, lookup
-from app.models import db, User, Transaction, TransactionType
+from app.models import db, User, Transaction, Symbol
 
 from . import trade
 
@@ -56,15 +56,24 @@ def buy():
             return apology("You can't afford it homeboy", 403)
 
         else:
-            # Find the id for a purchase transaction
-            type_id = db.session.execute(
-                db.select(TransactionType.id).filter_by(type='PURCHASE')
-            ).first()[0]
+            # Get symbol id or generate new one
+            record = db.session.execute(
+                db.select(Symbol.id).filter_by(symbol=symbol)
+            ).first()
+
+            if record is not None:
+                symbol_id = record[0]
+            else:
+                new_symbol = Symbol(
+                    symbol=symbol
+                )
+                db.session.add(new_symbol)
+                db.session.commit()
+                symbol_id = new_symbol.id
 
             # Define the transaction table entry
             transaction = Transaction(
-                transaction_type_id=type_id,
-                symbol=symbol,
+                symbol_id=symbol_id,
                 price=quote["price"],
                 shares=shares,
                 user_id=id

@@ -27,19 +27,19 @@ class User(db.Model):
     )
 
 
-class TransactionType(db.Model):
-    """Data model for transaction types"""
+class Symbol(db.Model):
+    """Data model for stock symbols"""
 
-    __tablename__ = 'transaction_types'
+    __tablename__ = 'symbols'
     id = db.Column(
         db.Integer,
         primary_key=True,
-        autoincrement=True
+        autoincrement=True,
+        nullable=False
     )
-    type = db.Column(
+    symbol = db.Column(
         db.String(10),
-        nullable=False,
-        unique=True
+        nullable=False
     )
 
 
@@ -53,8 +53,9 @@ class Transaction(db.Model):
         autoincrement=True,
         nullable=False
     )
-    symbol = db.Column(
-        db.String(10),
+    symbol_id = db.Column(
+        db.Integer,
+        db.ForeignKey(Symbol.id),
         nullable=False,
     )
     price = db.Column(
@@ -72,9 +73,4 @@ class Transaction(db.Model):
         db.Integer,
         db.ForeignKey(User.id),
         nullable=False,
-    )
-    transaction_type_id = db.Column(
-        db.Integer,
-        db.ForeignKey(TransactionType.id),
-        nullable=False
     )
