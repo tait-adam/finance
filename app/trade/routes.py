@@ -1,5 +1,5 @@
 from flask import request, redirect, render_template, session
-from helpers import apology, login_required, lookup
+from helpers import apology, login_required, lookup, is_pos_int
 from app.models import db, User, Transaction, Symbol
 
 from . import trade
@@ -37,9 +37,6 @@ def buy():
             db.select(User.cash).filter_by(id=id)
         )
 
-        def is_pos_int(n):
-            return isinstance(n, int) and n > 0
-
         # Ensure symbol is not blank...
         if not symbol:
             return apology("Symbol cannot be blank!", 403)
@@ -65,7 +62,7 @@ def buy():
                 symbol_id = record[0]
             else:
                 new_symbol = Symbol(
-                    symbol=symbol
+                    symbol=symbol.upper()
                 )
                 db.session.add(new_symbol)
                 db.session.commit()
@@ -82,7 +79,7 @@ def buy():
             # Work out how much cash user will have after transaction
             cash_remaining = cash_available - shares * quote["price"]
 
-            # Fetch record to update
+            # Fetch user record to update
             user = db.session.execute(
                 db.select(User).filter_by(id=id)
             ).first()[0]
@@ -103,4 +100,63 @@ def buy():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+
+    id = session["user_id"]
+    stocks_held = []
+
+    # Get users transaction records grouped by symbol
+    records = db.session.execute(
+        db
+        .select(Transaction, db.func.sum(Transaction.shares))
+        .filter_by(user_id=id)
+        .group_by(Transaction.symbol_id)
+    ).all()
+
+    for record in records:
+        symbol = record[0].symbol.symbol
+        shares = record[1]
+        if shares != 0:
+            stock = {
+                'symbol': symbol,
+                'shares': shares
+            }
+            stocks_held.append(stock)
+
+    if request.method == "POST":
+        shares = int(request.form.get("shares"))
+        symbol = request.form.get("symbol")
+
+        # Check stock selected
+        if not symbol:
+            return apology("Need to select a share")
+        # Check we own stock
+        elif not any(stock['symbol'] == symbol for stock in stocks_held):
+            return apology(f"You don't hold {symbol} shares")
+        # Check number of share to sell is +ve int
+        elif not is_pos_int(shares):
+            return apology("Must be a positive integer!", 403)
+
+        # Look up symbol id
+        symbol_id = db.session.execute(
+            db.select(Symbol.id).filter_by(symbol=symbol)
+        ).first()[0]
+
+        # Look up market price
+        market = lookup(symbol)
+
+        # Build transaction entry
+        transaction = Transaction(
+            price=market["price"],
+            shares=-shares,
+            symbol_id=symbol_id,
+            user_id=id
+        )
+
+        db.session.add(transaction)
+        db.session.commit()
+
+        return redirect("/")
+
+    # if request.method="GET"
+    else:
+        return render_template("sell.html", stocks=stocks_held)

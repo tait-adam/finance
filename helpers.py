@@ -2,7 +2,7 @@ import os
 import requests
 import urllib.parse
 
-from flask import redirect, render_template, request, session
+from flask import redirect, render_template, session
 from functools import wraps
 
 
@@ -67,3 +67,7 @@ def lookup(symbol):
 def usd(value):
     """Format value as USD."""
     return f"${value:,.2f}"
+
+
+def is_pos_int(n):
+    return isinstance(n, int) and n > 0
