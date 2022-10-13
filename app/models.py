@@ -25,6 +25,7 @@ class User(db.Model):
         nullable=False,
         default=10000
     )
+    transactions = db.relationship('Transaction', back_populates='user')
 
 
 class Symbol(db.Model):
@@ -41,6 +42,7 @@ class Symbol(db.Model):
         db.String(10),
         nullable=False
     )
+    transactions = db.relationship('Transaction', back_populates='symbol')
 
 
 class Transaction(db.Model):
@@ -55,7 +57,7 @@ class Transaction(db.Model):
     )
     symbol_id = db.Column(
         db.Integer,
-        db.ForeignKey(Symbol.id),
+        db.ForeignKey('symbols.id'),
         nullable=False,
     )
     price = db.Column(
@@ -71,6 +73,8 @@ class Transaction(db.Model):
     )
     user_id = db.Column(
         db.Integer,
-        db.ForeignKey(User.id),
+        db.ForeignKey('users.id'),
         nullable=False,
     )
+    user = db.relationship("User", back_populates='transactions')
+    symbol = db.relationship("Symbol", back_populates='transactions')

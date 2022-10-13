@@ -1,6 +1,6 @@
 from flask import session, render_template
 from helpers import apology, login_required, lookup, usd
-from app.models import db, Transaction, User, Symbol
+from app.models import db, Transaction
 
 from . import portfolio
 
@@ -14,26 +14,23 @@ def index():
     transactions = []
     total = 0
 
-    # Get cash holdings for user and add to total
-    cash = db.session.execute(
-        db.select(User.cash).filter_by(id=id)
-    ).scalar()
-    total += cash
-
-    # Get transaction records for user
+    # Get all users transactions
     records = db.session.execute(
-        db.select(Transaction).filter_by(user_id=id)
-    ).scalars()
+        db
+        .select(Transaction)
+        .filter_by(user_id=id)
+    ).scalars().all()
+
+    # Add cash holdings to total
+    cash = records[0].user.cash
+    total += cash
 
     # Build transaction dicts for view
     for record in records:
         # Lookup current stock info
-        record.symbol = db.session.execute(
-            db.select(Symbol.symbol).filter_by(id=record.symbol_id)
-        ).scalar()
-        transaction = lookup(record.symbol)
+        transaction = lookup(record.symbol.symbol)
 
-        # Calculate transaction holding
+        # Calculate current valuation of holdings
         transaction['shares'] = record.shares
         current_value = record.shares * transaction['price']
 
