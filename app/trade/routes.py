@@ -96,6 +96,7 @@ def buy():
         return render_template("buy.html")
 
 
+# TODO: Stop user from being able to sell more shares than they own
 @trade.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
@@ -126,15 +127,24 @@ def sell():
         shares = int(request.form.get("shares"))
         symbol = request.form.get("symbol")
 
+        def shares_owned(symbol):
+            return [
+                stock['shares'] for stock in stocks_held
+                if stock['symbol'] == symbol
+            ][0]
+
         # Check stock selected
         if not symbol:
             return apology("Need to select a share")
         # Check we own stock
         elif not any(stock['symbol'] == symbol for stock in stocks_held):
             return apology(f"You don't hold {symbol} shares")
-        # Check number of share to sell is +ve int
+        # Check number of shares to sell is +ve int
         elif not is_pos_int(shares):
             return apology("Must be a positive integer!", 403)
+        # Check we're not trying to sell more shares than we own
+        elif shares > shares_owned(symbol):
+            return apology("You don't hold enough stock")
 
         # Look up symbol id
         symbol_id = db.session.execute(
