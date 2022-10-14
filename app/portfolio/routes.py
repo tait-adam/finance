@@ -1,6 +1,6 @@
 from flask import session, render_template
 from helpers import apology, login_required, lookup, usd
-from app.models import db, Transaction
+from app.models import db, Transaction, User
 
 from . import portfolio
 
@@ -22,8 +22,18 @@ def index():
     ).scalars().all()
 
     # Add cash holdings to total
-    cash = records[0].user.cash
-    total += cash
+    # If there have been no transactions get users cash
+    if not records:
+        cash = db.session.execute(
+            db
+            .select(User.cash)
+            .filter_by(id=id)
+        ).scalars().first()
+        total += cash
+    # If there are transactions, no need for a separate call to user
+    else:
+        cash = records[0].user.cash
+        total += cash
 
     # Build transaction dicts for view
     for record in records:
