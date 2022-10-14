@@ -1,6 +1,6 @@
 from flask import session, render_template
-from helpers import apology, login_required, lookup, usd
-from app.models import db, Transaction, User
+from helpers import login_required, lookup, usd
+from app.models import db, User, Transaction
 
 from . import portfolio
 
@@ -14,12 +14,7 @@ def index():
     transactions = []
     total = 0
 
-    # Get all users transactions
-    records = db.session.execute(
-        db
-        .select(Transaction)
-        .filter_by(user_id=id)
-    ).scalars().all()
+    records = get_all_user_transactions(id)
 
     # Add cash holdings to total
     # If there have been no transactions get users cash
@@ -55,7 +50,6 @@ def index():
         # Add transaction to transactions array
         transactions.append(transaction)
 
-    # return apology("PORTFOLIO")
     return render_template(
         "portfolio.html",
         transactions=transactions,
@@ -68,4 +62,41 @@ def index():
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+
+    id = session["user_id"]
+    transactions = []
+    records = get_all_user_transactions(id)
+
+    for record in records:
+        # Build transaction object
+        transaction = {}
+        transaction['symbol'] = record.symbol.symbol
+
+        # Determine Sale or Purchase
+        if record.shares < 0:
+            transaction['type'] = 'SALE'
+        else:
+            transaction['type'] = 'PURCHASE'
+
+        transaction['shares'] = abs(record.shares)
+
+        # Format currencies to USD
+        transaction['paid'] = usd(record.price)
+
+        # Format transaction date
+        transaction['timestamp'] = record.timestamp.strftime(
+            "%m/%d/%Y, %H:%M:%S"
+        )
+
+        # Add transaction to transactions array
+        transactions.append(transaction)
+
+    return render_template("history.html", transactions=transactions)
+
+
+def get_all_user_transactions(id):
+    return db.session.execute(
+        db
+        .select(Transaction)
+        .filter_by(user_id=id)
+    ).scalars().all()
