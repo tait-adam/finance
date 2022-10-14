@@ -1,4 +1,4 @@
-from flask import request, redirect, render_template, session
+from flask import flash, request, redirect, render_template, session
 from helpers import apology, login_required, lookup, is_pos_int
 from app.models import db, User, Transaction, Symbol
 
@@ -89,6 +89,8 @@ def buy():
             user.cash = cash_remaining
             db.session.commit()
 
+            flash('Purchase transaction successful')
+
             return redirect('/')
 
     # User reached route via GET (clicking link or entering url)
@@ -96,7 +98,6 @@ def buy():
         return render_template("buy.html")
 
 
-# TODO: Stop user from being able to sell more shares than they own
 @trade.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
@@ -173,6 +174,8 @@ def sell():
         db.session.add(transaction)
         user.cash += sale
         db.session.commit()
+
+        flash('Sale transaction successful')
 
         return redirect("/")
 

@@ -1,4 +1,4 @@
-from flask import request, redirect, render_template, session
+from flask import flash, request, redirect, render_template, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology
 
@@ -49,6 +49,7 @@ def register():
             db.session.commit()
 
             session["user_id"] = new_user.id
+            flash('You were successfully registered')
 
             return redirect("/")
 
@@ -88,6 +89,7 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = record.id
+        flash('You were successfully logged in')
 
         # Redirect user to home page
         return redirect("/")

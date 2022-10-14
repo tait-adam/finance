@@ -4,10 +4,10 @@
 # TODO: Define UNIQUE indexes on any fields that should be unique.
 # TODO: Define (non-UNIQUE) indexes on any fields via which you will search
 #       (as via SELECT with WHERE).
+# TODO: Decide if we need tempfile/mkdtemp
 
 from flask import Flask
 from flask_session import Session
-from tempfile import mkdtemp
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
