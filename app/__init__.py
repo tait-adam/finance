@@ -1,10 +1,9 @@
-# TODO: Add flash messages
 # TODO: Make sure all the http status response codes errors are handled
-# TODO: Look at staff solution: https://finance.cs50.net
 # TODO: Define UNIQUE indexes on any fields that should be unique.
 # TODO: Define (non-UNIQUE) indexes on any fields via which you will search
 #       (as via SELECT with WHERE).
 # TODO: Decide if we need tempfile/mkdtemp
+# TODO: Decide if I'm happy with all my db calls
 
 from flask import Flask
 from flask_session import Session
@@ -25,21 +24,12 @@ def init_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
 
-    # Initialise Plugins
-    db.init_app(app)
-    migrate.init_app(app, db)
-    Session(app)
-
     # Custom filter
     app.jinja_env.filters["usd"] = usd
 
     with app.app_context():
-        from app.auth import auth
-        from app.trade import trade
-        from app.portfolio import portfolio
-        app.register_blueprint(auth)
-        app.register_blueprint(trade)
-        app.register_blueprint(portfolio)
+        register_blueprints(app)
+        initialise_extensions(app, db)
 
     @app.after_request
     def after_request(response):
@@ -50,3 +40,19 @@ def init_app():
         return response
 
     return app
+
+
+# Helper Functions
+def register_blueprints(app):
+    from app.auth import auth
+    from app.trade import trade
+    from app.portfolio import portfolio
+    app.register_blueprint(auth)
+    app.register_blueprint(trade)
+    app.register_blueprint(portfolio)
+
+
+def initialise_extensions(app, db):
+    db.init_app(app)
+    migrate.init_app(app, db)
+    Session(app)
