@@ -144,6 +144,9 @@ def sell():
         # Look up market price
         market = lookup(symbol)
 
+        # Calculate sale
+        sale = market["price"] * shares
+
         # Build transaction entry
         transaction = Transaction(
             price=market["price"],
@@ -152,7 +155,13 @@ def sell():
             user_id=id
         )
 
+        # Fetch user record to update
+        user = db.session.execute(
+            db.select(User).filter_by(id=id)
+        ).first()[0]
+
         db.session.add(transaction)
+        user.cash += sale
         db.session.commit()
 
         return redirect("/")
