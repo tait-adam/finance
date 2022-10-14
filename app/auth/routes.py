@@ -78,18 +78,17 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        # TODO: Handle 404
-        record = db.one_or_404(
+        record = db.session.execute(
             db.select(User).filter_by(username=username)
-        )
+        ).scalar()
 
         # Ensure username exists and password is correct
-        if not record.id or not check_password_hash(record.hash, password):
+        if not record or not check_password_hash(record.hash, password):
             return apology("invalid username and/or password", 403)
-
-        # Remember which user has logged in
-        session["user_id"] = record.id
-        flash('You were successfully logged in')
+        else:
+            # Remember which user has logged in
+            session["user_id"] = record.id
+            flash('You were successfully logged in')
 
         # Redirect user to home page
         return redirect("/")
