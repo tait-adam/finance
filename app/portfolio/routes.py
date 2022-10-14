@@ -14,30 +14,35 @@ def index():
     transactions = []
     total = 0
 
-    records = get_all_user_transactions(id)
+    # Get users transaction records grouped by symbol
+    records = db.session.execute(
+        db
+        .select(Transaction, db.func.sum(Transaction.shares))
+        .filter_by(user_id=id)
+        .group_by(Transaction.symbol_id)
+    ).all()
 
     # Add cash holdings to total
-    # If there have been no transactions get users cash
-    if not records:
-        cash = db.session.execute(
-            db
-            .select(User.cash)
-            .filter_by(id=id)
-        ).scalars().first()
-        total += cash
-    # If there are transactions, no need for a separate call to user
-    else:
-        cash = records[0].user.cash
-        total += cash
+    cash = db.session.execute(
+        db
+        .select(User.cash)
+        .filter_by(id=id)
+    ).scalars().first()
+    total += cash
 
     # Build transaction dicts for view
     for record in records:
+        print("**************************************************************")
+        print(record[0].symbol_id)
+        print("**************************************************************")
+
         # Lookup current stock info
-        transaction = lookup(record.symbol.symbol)
+        transaction = lookup(record[0].symbol.symbol)
 
         # Calculate current valuation of holdings
-        transaction['shares'] = record.shares
-        current_value = record.shares * transaction['price']
+        shares = record[1]
+        transaction['shares'] = shares
+        current_value = shares * transaction['price']
 
         # Add current_value to total
         total += current_value
@@ -45,10 +50,11 @@ def index():
         # Format currencies to USD
         transaction['current_value'] = usd(current_value)
         transaction['price'] = usd(transaction['price'])
-        transaction['paid'] = usd(record.price)
+        transaction['paid'] = usd(record[0].price)
 
         # Add transaction to transactions array
-        transactions.append(transaction)
+        if shares != 0:
+            transactions.append(transaction)
 
     return render_template(
         "portfolio.html",
@@ -65,7 +71,12 @@ def history():
 
     id = session["user_id"]
     transactions = []
-    records = get_all_user_transactions(id)
+
+    records = db.session.execute(
+        db
+        .select(Transaction)
+        .filter_by(user_id=id)
+    ).scalars().all()
 
     for record in records:
         # Build transaction object
@@ -92,11 +103,3 @@ def history():
         transactions.append(transaction)
 
     return render_template("history.html", transactions=transactions)
-
-
-def get_all_user_transactions(id):
-    return db.session.execute(
-        db
-        .select(Transaction)
-        .filter_by(user_id=id)
-    ).scalars().all()
