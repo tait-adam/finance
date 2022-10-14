@@ -55,7 +55,7 @@ def buy():
         else:
             # Get symbol id or generate new one
             record = db.session.execute(
-                db.select(Symbol.id).filter_by(symbol=symbol)
+                db.select(Symbol.id).filter_by(symbol=symbol.upper())
             ).first()
 
             if record is not None:

@@ -32,10 +32,6 @@ def index():
 
     # Build transaction dicts for view
     for record in records:
-        print("**************************************************************")
-        print(record[0].symbol_id)
-        print("**************************************************************")
-
         # Lookup current stock info
         transaction = lookup(record[0].symbol.symbol)
 
