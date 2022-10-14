@@ -46,7 +46,6 @@ def index():
         # Format currencies to USD
         transaction['current_value'] = usd(current_value)
         transaction['price'] = usd(transaction['price'])
-        transaction['paid'] = usd(record[0].price)
 
         # Add transaction to transactions array
         if shares != 0:

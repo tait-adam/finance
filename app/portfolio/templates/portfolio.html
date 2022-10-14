@@ -12,7 +12,6 @@ Portfolio
       <th scope="col">Company</th>
       <th scope="col">Shares</th>
       <th scope="col">Price</th>
-      <th scope="col">Paid</th>
       <th scope="col" class="total">Total</th>
     </tr>
   </thead>
@@ -23,18 +22,17 @@ Portfolio
       <td>{{ transaction.name }}</td>
       <td>{{ transaction.shares }}</td>
       <td>{{ transaction.price }}</td>
-      <td>({{ transaction.paid }})</td>
       <td>{{ transaction.current_value }}</td>
     </tr>
     {% endfor %}
   </tbody>
   <tfoot>
     <tr>
-      <td class="fw-bold text-end" colspan="5">Cash</td>
+      <td class="fw-bold text-end" colspan="4">Cash</td>
       <td>{{ cash }}</td>
     </tr>
     <tr>
-      <td class="fw-bold text-end text-uppercase" colspan="5">Total</td>
+      <td class="fw-bold text-end text-uppercase" colspan="4">Total</td>
       <td class="fw-bold">{{ total }}</td>
     </tr>
   </tfoot>
